@@ -1,0 +1,71 @@
+.control-tower {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px;
+  min-height: 100%;
+}
+
+.control-tower__grid {
+  display: grid;
+  grid-template-columns: 280px 1fr 300px;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.control-tower__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.control-tower__panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.control-tower__panel::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 2px;
+}
+
+/* 两栏模式：右栏折叠 */
+@media (max-width: 1279px) and (min-width: 768px) {
+  .control-tower__grid {
+    grid-template-columns: 280px 1fr;
+  }
+  .control-tower__panel--right {
+    display: none;
+  }
+  .control-tower__right-drawer {
+    display: block;
+  }
+}
+
+/* 单栏模式：移动端纵向堆叠 */
+@media (max-width: 767px) {
+  .control-tower {
+    padding: 12px;
+  }
+  .control-tower__grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .control-tower__panel--left {
+    order: 2;
+  }
+  .control-tower__panel--center {
+    order: 1;
+  }
+  .control-tower__panel--right {
+    order: 3;
+  }
+}
+
+/* 右栏抽屉（平板端） */
+.control-tower__right-drawer {
+  display: none;
+}
