@@ -66,6 +66,8 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     children: [
       { path: '/data-management/ai-gateway', labelKey: 'menu.integrationAiGateway', permissionCode: 'data-management', icon: <ApiOutlined /> },
       { path: '/data-management/database-connection', labelKey: 'menu.integrationDatabaseConnection', permissionCode: 'data-management', icon: <DatabaseOutlined /> },
+      { path: '/data-management/semantic-models', labelKey: 'menu.semanticModels', permissionCode: 'data-management', icon: <ApartmentOutlined /> },
+      { path: '/data-management/semantic-query', labelKey: 'menu.semanticQuery', permissionCode: 'data-management', icon: <SearchOutlined /> },
       { path: '/data-management/database-text2sql', labelKey: 'menu.integrationDatabaseText2Sql', permissionCode: 'data-management', icon: <SearchOutlined /> },
     ],
   },

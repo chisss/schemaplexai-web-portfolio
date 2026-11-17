@@ -46,6 +46,8 @@ const ApiGatewayCreate = lazy(() => import('@/pages/integration/gateway/ApiGatew
 const ApiGatewayDetail = lazy(() => import('@/pages/integration/gateway/ApiGatewayDetail'));
 const DatabaseConnection = lazy(() => import('@/pages/integration/DatabaseConnection'));
 const DatabaseText2Sql = lazy(() => import('@/pages/integration/DatabaseText2Sql'));
+const SemanticModelCatalog = lazy(() => import('@/pages/semantic/SemanticModelCatalog'));
+const SemanticWorkbench = lazy(() => import('@/pages/semantic/SemanticWorkbench'));
 const InAppInbox = lazy(() => import('@/pages/notification/InAppInbox'));
 const NotificationRecordList = lazy(() => import('@/pages/notification/NotificationRecordList'));
 // 集成扩展子模块
@@ -182,6 +184,18 @@ const router = createBrowserRouter([
       { path: 'data-management/ai-gateway/:id', element: renderLazy(ApiGatewayDetail) },
       { path: 'data-management/database-connection', element: renderLazy(DatabaseConnection) },
       { path: 'data-management/database-text2sql', element: renderLazy(DatabaseText2Sql) },
+      {
+        path: 'data-management/semantic-models',
+        element: renderLazy(SemanticModelCatalog),
+      },
+      {
+        path: 'data-management/semantic-models/:modelId',
+        element: renderLazy(SemanticWorkbench),
+      },
+      {
+        path: 'data-management/semantic-query',
+        element: renderLazy(DatabaseText2Sql),
+      },
       { path: 'integration/channel', element: renderLazy(ChannelList) },
       { path: 'integration/channel/create', element: renderLazy(ChannelCreate) },
       { path: 'integration/channel/:id', element: renderLazy(ChannelDetail) },

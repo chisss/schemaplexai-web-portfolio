@@ -69,6 +69,8 @@ const EXACT_ROUTE_LABEL_KEYS: Record<string, string> = {
   '/data-management/ai-gateway': 'menu.integrationAiGateway',
   '/data-management/database-connection': 'menu.integrationDatabaseConnection',
   '/data-management/database-text2sql': 'menu.integrationDatabaseText2Sql',
+  '/data-management/semantic-models': 'menu.semanticModels',
+  '/data-management/semantic-query': 'menu.semanticQuery',
   '/notification/inbox': 'notification.inboxTitle',
   '/notification/channel': 'menu.notificationChannel',
   '/notification/message-template': 'menu.notificationMessageTemplate',
@@ -114,6 +116,8 @@ const SEGMENT_LABEL_KEYS: Record<string, string> = {
   'ai-gateway': 'menu.integrationAiGateway',
   'database-connection': 'menu.integrationDatabaseConnection',
   'database-text2sql': 'menu.integrationDatabaseText2Sql',
+  'semantic-models': 'menu.semanticModels',
+  'semantic-query': 'menu.semanticQuery',
   marketplace: 'marketplace.title',
   skill: 'menu.integrationSkill',
   mcp: 'menu.integrationMcp',
@@ -188,12 +192,24 @@ export function resolveRouteContext(pathname: string, t: TFunction): RouteContex
   const moduleKey = MODULE_LABEL_KEYS.find((item) => normalizedPath.startsWith(item.prefix))?.key ?? 'menu.dashboard';
   const exactLabelKey = EXACT_ROUTE_LABEL_KEYS[normalizedPath];
   const segments = normalizedPath.split('/').filter(Boolean);
-  const pageLabel = exactLabelKey ? t(exactLabelKey) : translatePathSegment(segments[segments.length - 1], t);
+  const isSemanticWorkbench = segments.length === 3
+    && segments[0] === 'data-management'
+    && segments[1] === 'semantic-models';
+  const pageLabel = isSemanticWorkbench
+    ? t('semantic.workbench.title')
+    : exactLabelKey
+      ? t(exactLabelKey)
+      : translatePathSegment(segments[segments.length - 1], t);
+  const trailLabel = segments
+    .map((segment, index) => (isSemanticWorkbench && index === segments.length - 1
+      ? pageLabel
+      : translatePathSegment(segment, t)))
+    .join(' / ');
 
   return {
     moduleLabel: t(moduleKey),
     pageLabel,
-    trailLabel: segments.map((segment) => translatePathSegment(segment, t)).join(' / '),
+    trailLabel,
     normalizedPath,
   };
 }
