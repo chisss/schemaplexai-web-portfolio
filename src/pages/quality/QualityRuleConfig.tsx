@@ -277,7 +277,7 @@ export default function QualityRuleConfig({ embedded = false }: QualityRuleConfi
       },
       {
         onSuccess: () => {
-          message.success(status === 'active' ? '配置组已生效' : '配置组已失效');
+          message.success(status === 'active' ? t('quality.ruleConfig.activated') : t('quality.ruleConfig.deactivated'));
           if (selectedProfileId === profile.id) {
             setDraft((prev) => ({ ...prev, status }));
           }
@@ -335,7 +335,7 @@ export default function QualityRuleConfig({ embedded = false }: QualityRuleConfi
                       <Space wrap>
                         <Text strong>{item.name}</Text>
                         {item.isDefault && <Tag color="gold">{t('quality.ruleConfig.defaultTag')}</Tag>}
-                        <Tag color={item.status === 'active' ? 'green' : 'default'}>{item.status || 'active'}</Tag>
+                        <Tag color={item.status === 'active' ? 'green' : 'default'}>{item.status === 'active' ? t('common.enabled') : t('common.disabled')}</Tag>
                       </Space>
                       <Space size="small">
                         {item.status === 'inactive' ? (
@@ -347,7 +347,7 @@ export default function QualityRuleConfig({ embedded = false }: QualityRuleConfi
                               toggleProfileStatus(item, 'active');
                             }}
                           >
-                            生效
+                            {t('quality.ruleConfig.activate')}
                           </Button>
                         ) : (
                           <Button
@@ -358,11 +358,11 @@ export default function QualityRuleConfig({ embedded = false }: QualityRuleConfi
                               toggleProfileStatus(item, 'inactive');
                             }}
                           >
-                            失效
+                            {t('quality.ruleConfig.deactivate')}
                           </Button>
                         )}
                         <Popconfirm
-                          title="确认删除该配置组？"
+                          title={t('quality.ruleConfig.confirmDelete')}
                           onConfirm={(event) => {
                             event?.stopPropagation();
                             if (item.id === selectedProfileId) {

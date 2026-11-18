@@ -7,6 +7,7 @@ import QualityIssueHandleDrawer from './components/QualityIssueHandleDrawer';
 import SeverityBadge from './components/SeverityBadge';
 import GateDecisionTag from './components/GateDecisionTag';
 import QualityActionColumn from './components/QualityActionColumn';
+import { useTranslation } from 'react-i18next';
 
 const { Text } = Typography;
 
@@ -21,6 +22,7 @@ const ISSUE_TYPE_COLOR_MAP: Record<string, string> = {
 };
 
 export default function QualityOverview({ embedded = false }: QualityOverviewProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState<QualityIssueQueryDTO>({ page: 1, size: 10 });
   const [selectedIssue, setSelectedIssue] = useState<QualityIssue | null>(null);
 
@@ -29,15 +31,15 @@ export default function QualityOverview({ embedded = false }: QualityOverviewPro
   const blockedCount = (stats.data?.open ?? 0) + (stats.data?.acknowledged ?? 0);
 
   const statsCards = useMemo(() => ([
-    { title: '待处理', value: stats.data?.open ?? 0, color: '#cf1322', icon: <ExclamationCircleOutlined /> },
-    { title: '已确认', value: stats.data?.acknowledged ?? 0, color: '#fa8c16', icon: <ClockCircleOutlined /> },
-    { title: '已解决', value: stats.data?.resolved ?? 0, color: '#52c41a', icon: <CheckCircleOutlined /> },
-    { title: '阻断中', value: blockedCount, color: '#f5222d', icon: <StopOutlined /> },
-  ]), [blockedCount, stats.data?.acknowledged, stats.data?.open, stats.data?.resolved]);
+    { title: t('quality.issue.statusOpen'), value: stats.data?.open ?? 0, color: '#cf1322', icon: <ExclamationCircleOutlined /> },
+    { title: t('quality.issue.statusAcknowledged'), value: stats.data?.acknowledged ?? 0, color: '#fa8c16', icon: <ClockCircleOutlined /> },
+    { title: t('quality.issue.statusResolved'), value: stats.data?.resolved ?? 0, color: '#52c41a', icon: <CheckCircleOutlined /> },
+    { title: t('quality.overview.blocking'), value: blockedCount, color: '#f5222d', icon: <StopOutlined /> },
+  ]), [blockedCount, stats.data?.acknowledged, stats.data?.open, stats.data?.resolved, t]);
 
   const columns = [
     {
-      title: '标题',
+      title: t('quality.overview.columnTitle'),
       dataIndex: 'title',
       key: 'title',
       ellipsis: true,
@@ -49,42 +51,42 @@ export default function QualityOverview({ embedded = false }: QualityOverviewPro
       ),
     },
     {
-      title: '类型',
+      title: t('quality.overview.columnType'),
       dataIndex: 'issueType',
       key: 'issueType',
       width: 120,
-      render: (value: string) => <Tag color={ISSUE_TYPE_COLOR_MAP[value] || 'default'}>{value || '-'}</Tag>,
+      render: (value: string) => <Tag color={ISSUE_TYPE_COLOR_MAP[value] || 'default'}>{value === 'deviation' ? t('quality.issue.typeDeviation') : value === 'intent_defect' ? t('quality.issue.typeIntentDefect') : value || '-'}</Tag>,
     },
     {
-      title: '严重度',
+      title: t('quality.overview.columnSeverity'),
       dataIndex: 'severity',
       key: 'severity',
       width: 100,
       render: (value: string) => <SeverityBadge severity={value} />,
     },
     {
-      title: '闸门决策',
+      title: t('quality.overview.columnGateDecision'),
       dataIndex: 'gateDecision',
       key: 'gateDecision',
       width: 110,
       render: (value: string) => <GateDecisionTag decision={value} />,
     },
     {
-      title: '状态',
+      title: t('common.status'),
       dataIndex: 'status',
       key: 'status',
       width: 110,
-      render: (value: string) => <Tag>{value || '-'}</Tag>,
+      render: (value: string) => <Tag>{value === 'open' ? t('quality.issue.statusOpen') : value === 'acknowledged' ? t('quality.issue.statusAcknowledged') : value === 'resolving' ? t('quality.issue.statusResolving') : value === 'resolved' ? t('quality.issue.statusResolved') : value === 'ignored' ? t('quality.issue.statusIgnored') : value || '-'}</Tag>,
     },
     {
-      title: '创建时间',
+      title: t('common.createTime'),
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 180,
       render: (value: string) => value || '-',
     },
     {
-      title: '操作',
+      title: t('common.actions'),
       key: 'action',
       width: 120,
       render: (_: unknown, record: QualityIssue) => (
@@ -110,42 +112,42 @@ export default function QualityOverview({ embedded = false }: QualityOverviewPro
         ))}
       </Row>
 
-      <Card size="small" title="质量总览">
+      <Card size="small" title={t('quality.overview.title')}>
         <Space wrap style={{ marginBottom: 12 }}>
           <Select
             allowClear
-            placeholder="状态"
+            placeholder={t('quality.filter.status')}
             style={{ width: 140 }}
             value={query.status}
             onChange={(value) => setQuery((prev) => ({ ...prev, page: 1, status: value }))}
             options={[
-              { label: '待处理', value: 'open' },
-              { label: '已确认', value: 'acknowledged' },
-              { label: '已解决', value: 'resolved' },
-              { label: '已忽略', value: 'ignored' },
+              { label: t('quality.issue.statusOpen'), value: 'open' },
+              { label: t('quality.issue.statusAcknowledged'), value: 'acknowledged' },
+              { label: t('quality.issue.statusResolved'), value: 'resolved' },
+              { label: t('quality.issue.statusIgnored'), value: 'ignored' },
             ]}
           />
           <Select
             allowClear
-            placeholder="严重度"
+            placeholder={t('quality.filter.severity')}
             style={{ width: 140 }}
             value={query.severity}
             onChange={(value) => setQuery((prev) => ({ ...prev, page: 1, severity: value }))}
             options={[
-              { label: '严重', value: 'critical' },
-              { label: '警告', value: 'warning' },
-              { label: '提示', value: 'info' },
+              { label: t('quality.severity.critical'), value: 'critical' },
+              { label: t('quality.severity.warning'), value: 'warning' },
+              { label: t('quality.severity.info'), value: 'info' },
             ]}
           />
           <Select
             allowClear
-            placeholder="问题类型"
+            placeholder={t('quality.filter.issueType')}
             style={{ width: 160 }}
             value={query.issueType}
             onChange={(value) => setQuery((prev) => ({ ...prev, page: 1, issueType: value }))}
             options={[
-              { label: '偏离检测', value: 'deviation' },
-              { label: '意图缺陷', value: 'intent_defect' },
+              { label: t('quality.issue.typeDeviation'), value: 'deviation' },
+              { label: t('quality.issue.typeIntentDefect'), value: 'intent_defect' },
             ]}
           />
         </Space>
@@ -162,7 +164,7 @@ export default function QualityOverview({ embedded = false }: QualityOverviewPro
             total: issuesQuery.data?.total || 0,
             onChange: (page, size) => setQuery((prev) => ({ ...prev, page, size })),
             showSizeChanger: true,
-            showTotal: (total) => `共 ${total} 条`,
+            showTotal: (total) => t('common.total', { total }),
           }}
         />
       </Card>

@@ -20,6 +20,7 @@ import {
 } from 'antd';
 import { DollarOutlined, PieChartOutlined, SettingOutlined, WarningOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import LightweightECharts from '@/components/ECharts/LightweightECharts';
 import PageContainer from '@/components/PageContainer/PageContainer';
 import { MetricCard, ReportSectionCard } from '@/components/analytics/AnalyticsCards';
@@ -39,6 +40,17 @@ import {
 import { useAppStore } from '@/store/useAppStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { formatDateTime } from '@/utils/date';
+
+const STRATEGY_LABEL_KEYS: Record<string, string> = {
+  allow: 'cost.strategyAllow',
+  alert: 'cost.strategyAlert',
+  block: 'cost.strategyBlock',
+  downgrade: 'cost.strategyDowngrade',
+};
+
+function strategyLabel(value: string, t: TFunction) {
+  return STRATEGY_LABEL_KEYS[value] ? t(STRATEGY_LABEL_KEYS[value]) : value;
+}
 import {
   buildChartEmptyGraphic,
   buildTimeLabels,
@@ -369,21 +381,21 @@ export default function CostList() {
 
             <Col xs={24} xl={8}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <ReportSectionCard title="预算执行准入">
+                <ReportSectionCard title={t('cost.admission.title')}>
                   <div className="flex flex-col gap-3" style={{ minHeight: 160 }}>
                     <div>
-                      <Text type="secondary">策略状态</Text>
+                      <Text type="secondary">{t('cost.admission.policyStatus')}</Text>
                       <div className="mt-1">
                         <Tag color={strategyColor}>{admissionStatus?.strategy || activeBudget?.overLimitStrategy || 'allow'}</Tag>
-                        {admissionStatus?.allowed === false ? <Tag color="red">已阻断</Tag> : <Tag color="green">允许执行</Tag>}
+                        {admissionStatus?.allowed === false ? <Tag color="red">{t('cost.admission.blocked')}</Tag> : <Tag color="green">{t('cost.admission.allowed')}</Tag>}
                       </div>
                     </div>
                     <div>
-                      <Text type="secondary">剩余额度</Text>
+                      <Text type="secondary">{t('cost.admission.remainingQuota')}</Text>
                       <div className="mt-1 font-medium">${admissionStatus?.remainingAmount ?? budgetUsage?.remainAmount ?? 0}</div>
                     </div>
                     <div>
-                      <Text type="secondary">预估可运行次数</Text>
+                      <Text type="secondary">{t('cost.admission.estimatedRuns')}</Text>
                       <div className="mt-1 font-medium">
                         {Math.max(0, Math.floor(Number(admissionStatus?.remainingAmount ?? budgetUsage?.remainAmount ?? 0) / Math.max(1, Number(overview?.todayCost ?? 1))))}
                       </div>
@@ -395,29 +407,29 @@ export default function CostList() {
                           overLimitStrategy: activeBudget?.overLimitStrategy ?? admissionStatus?.strategy ?? 'downgrade',
                         });
                         setBudgetModalOpen(true);
-                      }}>预算设置</Button>
-                      <Button size="small" onClick={() => navigate('/approval-center?view=pending')}>审批中心</Button>
+                      }}>{t('cost.admission.budgetSettings')}</Button>
+                      <Button size="small" onClick={() => navigate('/approval-center?view=pending')}>{t('cost.admission.approvalCenter')}</Button>
                     </Space>
                   </div>
                 </ReportSectionCard>
 
-                <ReportSectionCard title="最近阻断">
+                <ReportSectionCard title={t('cost.recentBlocked')}>
                   <List
                     size="small"
-                    locale={{ emptyText: '暂无预算阻断记录' }}
+                    locale={{ emptyText: t('cost.noBlockRecords') }}
                     dataSource={budgetBlockEvents || []}
                     renderItem={(item) => (
                       <List.Item>
                         <List.Item.Meta
-                          title={item.message || item.resourceId || '预算阻断'}
+                          title={item.message || item.resourceId || t('cost.blockDefaultTitle')}
                           description={(
                             <div className="flex flex-col gap-1">
                               <Text type="secondary">{item.resourceType || 'agent_execution'} · {item.resourceId || '-'}</Text>
-                              <Text type="secondary">{formatDateTime(item.occurredAt)} · 使用率 {item.usageRate ?? '-'}%</Text>
+                              <Text type="secondary">{formatDateTime(item.occurredAt)} · {t('cost.usageRateText', { rate: item.usageRate ?? '-' })}</Text>
                             </div>
                           )}
                         />
-                        <Tag color="red">{item.strategy || 'block'}</Tag>
+                        <Tag color="red">{strategyLabel(item.strategy || 'block')}</Tag>
                       </List.Item>
                     )}
                   />
@@ -426,8 +438,8 @@ export default function CostList() {
                       style={{ marginTop: 12 }}
                       type="warning"
                       showIcon
-                      message="阻断后处理"
-                      description="可前往审批中心申请放行，或调整预算策略后重新执行。"
+                      message={t('cost.blockAfterAction')}
+                      description={t('cost.blockAfterActionDesc')}
                     />
                   ) : null}
                 </ReportSectionCard>

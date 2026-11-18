@@ -1,6 +1,7 @@
 import { Empty, Space, Typography } from 'antd';
 import type { QualityIssueFinding } from '@/types/quality';
 import SeverityBadge from './SeverityBadge';
+import { useTranslation } from 'react-i18next';
 
 const { Paragraph, Text } = Typography;
 
@@ -9,8 +10,9 @@ interface FindingsListProps {
 }
 
 export default function FindingsList({ findings }: FindingsListProps) {
+  const { t } = useTranslation();
   if (!findings?.length) {
-    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无发现项" />;
+    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('quality.finding.empty')} />;
   }
 
   return (
@@ -27,13 +29,13 @@ export default function FindingsList({ findings }: FindingsListProps) {
             <Space wrap>
               <SeverityBadge severity={finding.severity} />
               <Text type="secondary">{finding.type || '-'}</Text>
-              {finding.ruleCode ? <Text type="secondary">规则: {finding.ruleCode}</Text> : null}
-              {finding.confidence != null ? <Text type="secondary">置信度: {Math.round(finding.confidence * 100)}%</Text> : null}
+              {finding.ruleCode ? <Text type="secondary">{t('quality.finding.rule', { code: finding.ruleCode })}</Text> : null}
+              {finding.confidence != null ? <Text type="secondary">{t('quality.finding.confidence', { value: Math.round(finding.confidence * 100) })}</Text> : null}
             </Space>
             <Text strong>{finding.title}</Text>
             <Paragraph style={{ marginBottom: 0 }}>{finding.description || '-'}</Paragraph>
-            {finding.location ? <Text type="secondary">位置: {finding.location}</Text> : null}
-            {finding.suggestion ? <Text type="secondary">建议: {finding.suggestion}</Text> : null}
+            {finding.location ? <Text type="secondary">{t('quality.finding.location', { location: finding.location })}</Text> : null}
+            {finding.suggestion ? <Text type="secondary">{t('quality.finding.suggestion', { suggestion: finding.suggestion })}</Text> : null}
           </Space>
         </div>
       ))}

@@ -3,6 +3,7 @@ import { Badge, Card, Progress, Table, Tag } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { fetchQualityTasks } from '@/api/quality';
 import type { QualityTask } from '@/types/quality';
+import { useTranslation } from 'react-i18next';
 
 interface QualityTaskMonitorProps {
   embedded?: boolean;
@@ -16,7 +17,21 @@ const STATUS_MAP: Record<string, 'default' | 'processing' | 'success' | 'error' 
   cancelled: 'warning',
 };
 
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  pending: 'quality.task.statusPending',
+  running: 'quality.task.statusRunning',
+  succeeded: 'quality.task.statusSucceeded',
+  failed: 'quality.task.statusFailed',
+  cancelled: 'quality.task.statusCancelled',
+};
+
+const ISSUE_TYPE_LABEL_KEYS: Record<string, string> = {
+  deviation: 'quality.ruleConfig.issueTypeDeviation',
+  intent_defect: 'quality.ruleConfig.issueTypeIntentDefect',
+};
+
 export default function QualityTaskMonitor({ embedded = false }: QualityTaskMonitorProps) {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(10);
   const tasksQuery = useQuery({
@@ -26,29 +41,29 @@ export default function QualityTaskMonitor({ embedded = false }: QualityTaskMoni
   });
 
   const content = (
-    <Card size="small" title="质量任务监控">
+    <Card size="small" title={t('quality.task.monitorTitle')}>
       <Table
         rowKey="id"
         loading={tasksQuery.isLoading}
         dataSource={tasksQuery.data?.records || []}
         scroll={{ x: 960 }}
         columns={[
-          { title: '任务号', dataIndex: 'taskNo', width: 180 },
+          { title: t('quality.task.taskNo'), dataIndex: 'taskNo', width: 180 },
           {
-            title: '问题类型',
+            title: t('quality.task.issueType'),
             dataIndex: 'issueType',
             width: 120,
-            render: (value: string) => <Tag>{value || '-'}</Tag>,
+            render: (value: string) => <Tag>{ISSUE_TYPE_LABEL_KEYS[value] ? t(ISSUE_TYPE_LABEL_KEYS[value]) : value || '-'}</Tag>,
           },
-          { title: '触发方式', dataIndex: 'triggerMode', width: 120, render: (value: string) => value || '-' },
+          { title: t('quality.task.triggerMode'), dataIndex: 'triggerMode', width: 120, render: (value: string) => value || '-' },
           {
-            title: '状态',
+            title: t('common.status'),
             dataIndex: 'status',
             width: 120,
-            render: (value: string) => <Badge status={STATUS_MAP[(value || '').toLowerCase()] || 'default'} text={value || '-'} />,
+            render: (value: string) => <Badge status={STATUS_MAP[(value || '').toLowerCase()] || 'default'} text={STATUS_LABEL_KEYS[(value || '').toLowerCase()] ? t(STATUS_LABEL_KEYS[(value || '').toLowerCase()]) : value || '-'} />,
           },
           {
-            title: '进度',
+            title: t('quality.task.progress'),
             key: 'progress',
             width: 180,
             render: (_: unknown, record: QualityTask) => {
@@ -58,8 +73,8 @@ export default function QualityTaskMonitor({ embedded = false }: QualityTaskMoni
               return <Progress percent={percent} size="small" status={record.status === 'failed' ? 'exception' : undefined} />;
             },
           },
-          { title: '失败数', dataIndex: 'failedItems', width: 100, render: (value: number) => value ?? 0 },
-          { title: '创建时间', dataIndex: 'createdAt', width: 180, render: (value: string) => value || '-' },
+          { title: t('quality.task.failedItems'), dataIndex: 'failedItems', width: 100, render: (value: number) => value ?? 0 },
+          { title: t('common.createTime'), dataIndex: 'createdAt', width: 180, render: (value: string) => value || '-' },
         ]}
         pagination={{
           current: page,
@@ -70,7 +85,7 @@ export default function QualityTaskMonitor({ embedded = false }: QualityTaskMoni
             setSize(nextSize);
           },
           showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 条`,
+          showTotal: (total) => t('common.total', { total }),
         }}
       />
     </Card>

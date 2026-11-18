@@ -1,7 +1,23 @@
 import { Button, Empty, Progress, Space, Tag, Typography } from 'antd';
 import type { SecurityOverview } from '@/types/securityCompliance';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 const { Text } = Typography;
+
+const DOMAIN_KEYS: Record<string, string> = {
+  runtime: 'security.tab.runtime',
+  data: 'security.tab.data',
+  risk: 'security.tab.risk',
+  industry: 'security.tab.industry',
+};
+
+function domainLabel(value: string | undefined, t: TFunction) {
+  if (!value) {
+    return '-';
+  }
+  return DOMAIN_KEYS[value] ? t(DOMAIN_KEYS[value]) : value;
+}
 
 interface SecurityPolicySummaryProps {
   overview?: SecurityOverview;
@@ -9,6 +25,7 @@ interface SecurityPolicySummaryProps {
 }
 
 export default function SecurityPolicySummary({ overview, onConfigureRuntime }: SecurityPolicySummaryProps) {
+  const { t } = useTranslation();
   const domainStats = overview?.domainStats ?? [];
   const totalPolicies = overview?.totalPolicies ?? 0;
   const activePolicies = overview?.activePolicies ?? 0;
@@ -18,9 +35,9 @@ export default function SecurityPolicySummary({ overview, onConfigureRuntime }: 
     return (
       <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
-        description="运行时防护尚未启用，前往策略配置启用。"
+        description={t('security.summary.empty')}
       >
-        <Button size="small" type="primary" onClick={onConfigureRuntime}>启用策略</Button>
+        <Button size="small" type="primary" onClick={onConfigureRuntime}>{t('security.summary.enablePolicy')}</Button>
       </Empty>
     );
   }
@@ -28,19 +45,19 @@ export default function SecurityPolicySummary({ overview, onConfigureRuntime }: 
   return (
     <Space orientation="vertical" size={12} style={{ width: '100%' }}>
       <div>
-        <Text type="secondary">策略覆盖</Text>
+        <Text type="secondary">{t('security.summary.coverage')}</Text>
         <Progress percent={coverage} size="small" />
       </div>
       <Space wrap>
-        <Tag color="green">启用 {activePolicies}</Tag>
-        <Tag color="blue">草稿 {overview.draftPolicies}</Tag>
-        <Tag color={overview.criticalPolicies > 0 ? 'red' : 'default'}>高危 {overview.criticalPolicies}</Tag>
+        <Tag color="green">{t('security.summary.activeCount', { count: activePolicies })}</Tag>
+        <Tag color="blue">{t('security.summary.draftCount', { count: overview.draftPolicies })}</Tag>
+        <Tag color={overview.criticalPolicies > 0 ? 'red' : 'default'}>{t('security.summary.criticalCount', { count: overview.criticalPolicies })}</Tag>
       </Space>
       <Space direction="vertical" size={6} style={{ width: '100%' }}>
         {domainStats.map((item) => (
           <div key={item.domainCode} style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-            <Text>{item.domainCode}</Text>
-            <Text type="secondary">{item.activePolicies}/{item.totalPolicies} · 24h 拦截 {item.blockedEvents24h}</Text>
+            <Text>{domainLabel(item.domainCode, t)}</Text>
+            <Text type="secondary">{item.activePolicies}/{item.totalPolicies} · {t('security.summary.blocked24h', { count: item.blockedEvents24h })}</Text>
           </div>
         ))}
       </Space>

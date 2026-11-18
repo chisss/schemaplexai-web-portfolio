@@ -1,30 +1,32 @@
 import React from 'react';
 import { Card, Table, Button, Space, Tag, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 
 /**
  * 维度配置页面
  */
 const DimensionConfigPage: React.FC = () => {
+  const { t } = useTranslation();
   const columns = [
-    { title: '维度代码', dataIndex: 'code', key: 'code' },
-    { title: '维度名称', dataIndex: 'name', key: 'name' },
-    { title: '类别', dataIndex: 'category', key: 'category' },
+    { title: t('quality.dimension.code'), dataIndex: 'code', key: 'code' },
+    { title: t('quality.dimension.name'), dataIndex: 'name', key: 'name' },
+    { title: t('quality.dimension.category'), dataIndex: 'category', key: 'category' },
     {
-      title: '状态',
+      title: t('common.status'),
       dataIndex: 'isActive',
       key: 'isActive',
       render: (active: boolean) => (
-        <Tag color={active ? 'green' : 'red'}>{active ? '启用' : '禁用'}</Tag>
+        <Tag color={active ? 'green' : 'red'}>{active ? t('common.enable') : t('common.disable')}</Tag>
       ),
     },
     {
-      title: '操作',
+      title: t('common.actions'),
       key: 'action',
       render: () => (
         <Space>
-          <Tooltip title="编辑"><Button type="text" size="small" icon={<EditOutlined />} /></Tooltip>
-          <Tooltip title="删除"><Button type="text" size="small" danger icon={<DeleteOutlined />} /></Tooltip>
+          <Tooltip title={t('common.edit')}><Button type="text" size="small" icon={<EditOutlined />} /></Tooltip>
+          <Tooltip title={t('common.delete')}><Button type="text" size="small" danger icon={<DeleteOutlined />} /></Tooltip>
         </Space>
       ),
     },
@@ -32,10 +34,10 @@ const DimensionConfigPage: React.FC = () => {
 
   return (
     <Card
-      title="评估维度配置"
+      title={t('quality.dimension.pageTitle')}
       variant="borderless"
       className="shadow-sm"
-      extra={<Button type="primary" icon={<PlusOutlined />}>新建维度</Button>}
+      extra={<Button type="primary" icon={<PlusOutlined />}>{t('quality.dimension.create')}</Button>}
     >
       <Table columns={columns} dataSource={[]} loading={false} />
     </Card>

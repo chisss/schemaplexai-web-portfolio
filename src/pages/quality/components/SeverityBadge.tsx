@@ -1,4 +1,5 @@
 import { Tag } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 interface SeverityBadgeProps {
   severity?: string;
@@ -13,16 +14,18 @@ const COLOR_MAP: Record<string, string> = {
   low: 'default',
 };
 
-const LABEL_MAP: Record<string, string> = {
-  critical: '严重',
-  high: '高',
-  warning: '警告',
-  medium: '中',
-  info: '提示',
-  low: '低',
+const LABEL_KEY_MAP: Record<string, string> = {
+  critical: 'quality.severity.critical',
+  high: 'quality.severity.high',
+  warning: 'quality.severity.warning',
+  medium: 'quality.severity.medium',
+  info: 'quality.severity.info',
+  low: 'quality.severity.low',
 };
 
 export default function SeverityBadge({ severity }: SeverityBadgeProps) {
+  const { t } = useTranslation();
   const normalized = (severity || '').toLowerCase();
-  return <Tag color={COLOR_MAP[normalized] || 'default'}>{LABEL_MAP[normalized] || severity || '-'}</Tag>;
+  const label = LABEL_KEY_MAP[normalized] ? t(LABEL_KEY_MAP[normalized]) : severity || '-';
+  return <Tag color={COLOR_MAP[normalized] || 'default'}>{label}</Tag>;
 }

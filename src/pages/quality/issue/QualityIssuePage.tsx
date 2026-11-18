@@ -10,6 +10,8 @@ import {
 import type { QualityIssue, QualityIssueQueryDTO } from '@/types/quality';
 import type { ColumnsType } from 'antd/es/table';
 import { formatDateTime } from '@/utils/date';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 const severityColorMap: Record<string, string> = {
   critical: 'red',
@@ -33,7 +35,44 @@ const gateDecisionColorMap: Record<string, string> = {
   retry: 'blue',
 };
 
+const SEVERITY_LABEL_KEYS: Record<string, string> = {
+  critical: 'quality.severity.critical',
+  high: 'quality.severity.high',
+  warning: 'quality.severity.warning',
+  medium: 'quality.severity.medium',
+  info: 'quality.severity.info',
+  low: 'quality.severity.low',
+};
+
+const GATE_DECISION_LABEL_KEYS: Record<string, string> = {
+  pass: 'quality.gateDecision.pass',
+  warn: 'quality.gateDecision.warn',
+  pause: 'quality.gateDecision.pause',
+  fail: 'quality.gateDecision.fail',
+  retry: 'quality.gateDecision.retry',
+};
+
+const ISSUE_STATUS_LABEL_KEYS: Record<string, string> = {
+  open: 'quality.issue.statusOpen',
+  acknowledged: 'quality.issue.statusAcknowledged',
+  resolving: 'quality.issue.statusResolving',
+  resolved: 'quality.issue.statusResolved',
+  ignored: 'quality.issue.statusIgnored',
+};
+
+function labelOf(keyMap: Record<string, string>, value: string | undefined, t: TFunction) {
+  if (!value) {
+    return '-';
+  }
+  return keyMap[value] ? t(keyMap[value]) : value;
+}
+
+const severityLabel = (value: string, t: TFunction) => labelOf(SEVERITY_LABEL_KEYS, value, t);
+const gateDecisionLabel = (value: string, t: TFunction) => labelOf(GATE_DECISION_LABEL_KEYS, value, t);
+const issueStatusLabel = (value: string, t: TFunction) => labelOf(ISSUE_STATUS_LABEL_KEYS, value, t);
+
 const QualityIssuePage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [params, setParams] = useState<QualityIssueQueryDTO>({ page: 1, size: 20 });
   const { data: issuesData, isLoading } = useQualityIssues(params);
@@ -43,7 +82,7 @@ const QualityIssuePage: React.FC = () => {
 
   const columns: ColumnsType<QualityIssue> = [
     {
-      title: '标题',
+      title: t('quality.issue.columnTitle'),
       dataIndex: 'title',
       key: 'title',
       ellipsis: true,
@@ -52,77 +91,77 @@ const QualityIssuePage: React.FC = () => {
       ),
     },
     {
-      title: '类型',
+      title: t('quality.issue.columnType'),
       dataIndex: 'issueType',
       key: 'issueType',
       width: 100,
-      render: (type: string) => type === 'deviation' ? '偏离检测' : '意图缺陷',
+      render: (type: string) => type === 'deviation' ? t('quality.issue.typeDeviation') : t('quality.issue.typeIntentDefect'),
     },
     {
-      title: '严重度',
+      title: t('quality.issue.columnSeverity'),
       dataIndex: 'severity',
       key: 'severity',
       width: 80,
       render: (severity: string) => (
-        <Tag color={severityColorMap[severity] || 'default'}>{severity}</Tag>
+        <Tag color={severityColorMap[severity] || 'default'}>{severityLabel(severity, t)}</Tag>
       ),
     },
     {
-      title: '闸门决策',
+      title: t('quality.issue.columnGateDecision'),
       dataIndex: 'gateDecision',
       key: 'gateDecision',
       width: 90,
       render: (decision: string) => decision ? (
-        <Tag color={gateDecisionColorMap[decision] || 'default'}>{decision}</Tag>
+        <Tag color={gateDecisionColorMap[decision] || 'default'}>{gateDecisionLabel(decision, t)}</Tag>
       ) : '-',
     },
     {
-      title: '得分',
+      title: t('quality.issue.columnScore'),
       dataIndex: 'score',
       key: 'score',
       width: 60,
       render: (score: number) => score ?? '-',
     },
     {
-      title: '问题数',
+      title: t('quality.issue.columnFindingCount'),
       dataIndex: 'findingCount',
       key: 'findingCount',
       width: 70,
     },
     {
-      title: '状态',
+      title: t('quality.issue.columnStatus'),
       dataIndex: 'status',
       key: 'status',
       width: 90,
       render: (status: string) => (
-        <Tag color={statusColorMap[status] || 'default'}>{status}</Tag>
+        <Tag color={statusColorMap[status] || 'default'}>{issueStatusLabel(status, t)}</Tag>
       ),
     },
     {
-      title: '创建时间',
+      title: t('quality.issue.columnCreatedAt'),
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 160,
       render: (val: string) => formatDateTime(val),
     },
     {
-      title: '操作',
+      title: t('common.actions'),
       key: 'action',
       width: 160,
       render: (_: any, record: QualityIssue) => (
         <Space size="small">
-          <Button size="small" onClick={() => navigate(`/quality/issues/${record.id}`)}>详情</Button>
+          <Button size="small" onClick={() => navigate(`/quality/issues/${record.id}`)}>{t('common.detail')}</Button>
           {record.status === 'open' && (
             <Button
               size="small"
               type="link"
               onClick={() => {
                 acknowledgeMutation.mutate({ id: record.id }, {
-                  onSuccess: () => message.success('已确认'),
+                  onSuccess: () => message.success(t('quality.issue.msgAcknowledged')),
                 });
               }}
             >
-              确认
+              {t('quality.issue.acknowledge')}
             </Button>
           )}
           {(record.status === 'open' || record.status === 'acknowledged') && (
@@ -131,11 +170,11 @@ const QualityIssuePage: React.FC = () => {
               type="link"
               onClick={() => {
                 ignoreMutation.mutate({ id: record.id, data: {} }, {
-                  onSuccess: () => message.success('已忽略'),
+                  onSuccess: () => message.success(t('quality.issue.msgIgnored')),
                 });
               }}
             >
-              忽略
+              {t('quality.issue.ignore')}
             </Button>
           )}
         </Space>
@@ -146,29 +185,29 @@ const QualityIssuePage: React.FC = () => {
   return (
     <div>
       <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col span={5}><Card size="small"><Statistic title="待处理" value={statistics?.open ?? 0} valueStyle={{ color: '#cf1322' }} /></Card></Col>
-        <Col span={5}><Card size="small"><Statistic title="已确认" value={statistics?.acknowledged ?? 0} valueStyle={{ color: '#fa8c16' }} /></Card></Col>
-        <Col span={5}><Card size="small"><Statistic title="已解决" value={statistics?.resolved ?? 0} valueStyle={{ color: '#52c41a' }} /></Card></Col>
-        <Col span={5}><Card size="small"><Statistic title="已忽略" value={statistics?.ignored ?? 0} /></Card></Col>
-        <Col span={4}><Card size="small"><Statistic title="总计" value={statistics?.total ?? 0} /></Card></Col>
+        <Col span={5}><Card size="small"><Statistic title={t('quality.issue.statusOpen')} value={statistics?.open ?? 0} valueStyle={{ color: '#cf1322' }} /></Card></Col>
+        <Col span={5}><Card size="small"><Statistic title={t('quality.issue.statusAcknowledged')} value={statistics?.acknowledged ?? 0} valueStyle={{ color: '#fa8c16' }} /></Card></Col>
+        <Col span={5}><Card size="small"><Statistic title={t('quality.issue.statusResolved')} value={statistics?.resolved ?? 0} valueStyle={{ color: '#52c41a' }} /></Card></Col>
+        <Col span={5}><Card size="small"><Statistic title={t('quality.issue.statusIgnored')} value={statistics?.ignored ?? 0} /></Card></Col>
+        <Col span={4}><Card size="small"><Statistic title={t('quality.issue.total')} value={statistics?.total ?? 0} /></Card></Col>
       </Row>
 
       <Space style={{ marginBottom: 12 }}>
         <Select
           style={{ width: 120 }}
-          placeholder="状态"
+          placeholder={t('quality.filter.status')}
           allowClear
           onChange={(val) => setParams((p) => ({ ...p, status: val, page: 1 }))}
           options={[
-            { label: '待处理', value: 'open' },
-            { label: '已确认', value: 'acknowledged' },
-            { label: '已解决', value: 'resolved' },
-            { label: '已忽略', value: 'ignored' },
+            { label: t('quality.issue.statusOpen'), value: 'open' },
+            { label: t('quality.issue.statusAcknowledged'), value: 'acknowledged' },
+            { label: t('quality.issue.statusResolved'), value: 'resolved' },
+            { label: t('quality.issue.statusIgnored'), value: 'ignored' },
           ]}
         />
         <Select
           style={{ width: 120 }}
-          placeholder="严重度"
+          placeholder={t('quality.filter.severity')}
           allowClear
           onChange={(val) => setParams((p) => ({ ...p, severity: val, page: 1 }))}
           options={[
@@ -179,12 +218,12 @@ const QualityIssuePage: React.FC = () => {
         />
         <Select
           style={{ width: 120 }}
-          placeholder="类型"
+          placeholder={t('quality.filter.issueType')}
           allowClear
           onChange={(val) => setParams((p) => ({ ...p, issueType: val, page: 1 }))}
           options={[
-            { label: '偏离检测', value: 'deviation' },
-            { label: '意图缺陷', value: 'intent_defect' },
+            { label: t('quality.issue.typeDeviation'), value: 'deviation' },
+            { label: t('quality.issue.typeIntentDefect'), value: 'intent_defect' },
           ]}
         />
       </Space>
@@ -200,7 +239,7 @@ const QualityIssuePage: React.FC = () => {
           pageSize: params.size,
           total: issuesData?.total ?? 0,
           showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 条`,
+          showTotal: (total) => t('common.total', { total }),
           onChange: (page, size) => setParams((p) => ({ ...p, page, size })),
         }}
       />

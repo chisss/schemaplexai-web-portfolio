@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Card, Tabs } from 'antd';
 import { useSearchParams } from 'react-router-dom';
 import PageContainer from '@/components/PageContainer/PageContainer';
+import { useTranslation } from 'react-i18next';
 import QualityOverview from './QualityOverview';
 import DeviationList from './DeviationList';
 import IntentDefectList from './IntentDefectList';
@@ -10,6 +11,7 @@ import QualityRuleConfig from './QualityRuleConfig';
 import QualityTaskMonitor from './QualityTaskMonitor';
 
 export default function QualityList() {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = useMemo(() => {
     const value = searchParams.get('tab');
@@ -35,18 +37,18 @@ export default function QualityList() {
 
   return (
     <PageContainer
-      title="质量保障中心"
+      title={t('quality.center')}
     >
       <Tabs
         activeKey={activeTab}
         onChange={(value) => setSearchParams({ tab: String(value) })}
         items={[
-          { key: 'overview', label: '质量总览' },
-          { key: 'deviation', label: '偏离检测' },
-          { key: 'intent', label: '意图缺陷' },
-          { key: 'cross', label: '交叉审查' },
-          { key: 'rules', label: '检测配置' },
-          { key: 'tasks', label: '任务监控' },
+          { key: 'overview', label: t('quality.tab.overview') },
+          { key: 'deviation', label: t('quality.deviation.pageTitle') },
+          { key: 'intent', label: t('quality.defect.pageTitle') },
+          { key: 'cross', label: t('quality.crossReview.pageTitle') },
+          { key: 'rules', label: t('quality.tab.rules') },
+          { key: 'tasks', label: t('quality.tab.tasks') },
         ]}
       />
       <Card variant="borderless" className="shadow-sm">

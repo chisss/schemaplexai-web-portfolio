@@ -618,11 +618,11 @@ export default function ApprovalCenter() {
     const highPriorityCount = selectedBatchItems.filter((item) => item.priority === 'CRITICAL' || item.priority === 'HIGH').length;
     return {
       impactedResourceCount: impactedResources.size,
-      estimatedCostText: selectedBatchItems.some((item) => item.approvalType === 'workflow_review') ? '可能触发后续 Agent/Workflow 执行成本' : '未识别直接成本',
-      securityPolicyText: securityPolicyCount > 0 ? `涉及 ${securityPolicyCount} 个安全策略事件` : '未涉及安全策略事件',
-      rollbackText: highPriorityCount > 0 ? '高优先级项建议逐条确认，批量通过后需通过审计记录回溯' : '可通过审批审计记录追溯',
+      estimatedCostText: selectedBatchItems.some((item) => item.approvalType === 'workflow_review') ? t('approvalCenter.batchRisk.estimatedCostYes') : t('approvalCenter.batchRisk.estimatedCostNo'),
+      securityPolicyText: securityPolicyCount > 0 ? t('approvalCenter.batchRisk.securityPolicyCount', { count: securityPolicyCount }) : t('approvalCenter.batchRisk.securityPolicyNone'),
+      rollbackText: highPriorityCount > 0 ? t('approvalCenter.batchRisk.rollbackHigh') : t('approvalCenter.batchRisk.rollbackNormal'),
     };
-  }, [selectedBatchItems]);
+  }, [selectedBatchItems, t]);
   const selectedBatchType = useMemo(() => parseSelectionType(selectedKeys), [selectedKeys]);
   const approvalTableData = useMemo(
     () => items.map((item) => ({ ...item, key: toSelectionKey(item) })),
@@ -1173,7 +1173,7 @@ export default function ApprovalCenter() {
       ),
     },
     {
-      title: '治理信息',
+      title: t('approvalCenter.list.governance'),
       key: 'governance',
       width: 260,
       render: (_: unknown, item: ApprovalCenterItem) => (
@@ -1420,8 +1420,13 @@ export default function ApprovalCenter() {
           <Alert
             showIcon
             type={batchReviewDecision === 'approve' ? 'warning' : 'info'}
-            message="批量动作风险提示"
-            description={`影响资源 ${batchRiskSummary.impactedResourceCount} 个；涉及成本：${batchRiskSummary.estimatedCostText}；${batchRiskSummary.securityPolicyText}；可回滚性：${batchRiskSummary.rollbackText}。`}
+            message={t('approvalCenter.batchReview.riskAlertTitle')}
+            description={t('approvalCenter.batchReview.riskAlertDesc', {
+              count: batchRiskSummary.impactedResourceCount,
+              cost: batchRiskSummary.estimatedCostText,
+              security: batchRiskSummary.securityPolicyText,
+              rollback: batchRiskSummary.rollbackText,
+            })}
           />
           <Segmented
             block

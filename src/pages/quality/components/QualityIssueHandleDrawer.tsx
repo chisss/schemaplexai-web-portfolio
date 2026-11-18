@@ -11,6 +11,8 @@ import type { QualityIssue } from '@/types/quality';
 import FindingsList from './FindingsList';
 import SeverityBadge from './SeverityBadge';
 import GateDecisionTag from './GateDecisionTag';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 const { Paragraph, Text, Title } = Typography;
 
@@ -21,12 +23,14 @@ interface QualityIssueHandleDrawerProps {
   onSuccess?: () => void;
 }
 
-const RESOLUTION_OPTIONS = [
-  { label: '修复后继续', value: 'fix' },
-  { label: '接受风险', value: 'accept_risk' },
-  { label: '重试流程', value: 'retry' },
-  { label: '人工覆盖', value: 'override' },
-];
+const RESOLUTION_KEY_MAP: Record<string, string> = {
+  fix: 'quality.issue.actionFix',
+  accept_risk: 'quality.issue.actionAcceptRisk',
+  retry: 'quality.issue.actionRetry',
+  override: 'quality.issue.actionOverride',
+};
+
+const getResolutionOptions = (t: TFunction) => Object.entries(RESOLUTION_KEY_MAP).map(([value, key]) => ({ label: t(key), value }));
 
 export default function QualityIssueHandleDrawer({
   open,
@@ -35,6 +39,7 @@ export default function QualityIssueHandleDrawer({
   onSuccess,
 }: QualityIssueHandleDrawerProps) {
   const { message } = AntApp.useApp();
+  const { t } = useTranslation();
   const [remark, setRemark] = useState('');
   const [action, setAction] = useState('fix');
 
@@ -63,7 +68,7 @@ export default function QualityIssueHandleDrawer({
   const handleAcknowledge = async () => {
     if (!detail) return;
     await acknowledgeMutation.mutateAsync({ id: detail.id });
-    notifySuccess('质量问题已确认');
+    notifySuccess(t('quality.issue.msgAcknowledged'));
   };
 
   const handleResolve = async () => {
@@ -72,7 +77,7 @@ export default function QualityIssueHandleDrawer({
       id: detail.id,
       data: { action, remark: remark.trim() || undefined },
     });
-    notifySuccess('质量问题已处理');
+    notifySuccess(t('quality.issue.msgResolved'));
   };
 
   const handleIgnore = async () => {
@@ -81,13 +86,13 @@ export default function QualityIssueHandleDrawer({
       id: detail.id,
       data: { remark: remark.trim() || undefined },
     });
-    notifySuccess('质量问题已忽略');
+    notifySuccess(t('quality.issue.msgIgnored'));
   };
 
   const handleResume = async () => {
     if (!detail) return;
     await resumeMutation.mutateAsync({ id: detail.id });
-    notifySuccess('阻断工作流已恢复');
+    notifySuccess(t('quality.issue.msgWorkflowResumed'));
   };
 
   return (
@@ -96,19 +101,19 @@ export default function QualityIssueHandleDrawer({
       open={open}
       onClose={onClose}
       destroyOnHidden
-      title={detail?.title || '质量问题处理'}
+      title={detail?.title || t('quality.issue.handleTitle')}
       extra={pending ? (
         <Space>
           {detail?.status === 'open' ? (
             <Button loading={acknowledgeMutation.isPending} onClick={() => void handleAcknowledge()}>
-              确认
+              {t('quality.issue.acknowledge')}
             </Button>
           ) : null}
           <Button loading={ignoreMutation.isPending} onClick={() => void handleIgnore()}>
-            忽略
+            {t('quality.issue.ignore')}
           </Button>
           <Button type="primary" loading={resolveMutation.isPending} onClick={() => void handleResolve()}>
-            处理完成
+            {t('quality.issue.resolve')}
           </Button>
         </Space>
       ) : null}
@@ -118,32 +123,32 @@ export default function QualityIssueHandleDrawer({
           {detail.summary ? <Alert type="warning" showIcon title={detail.summary} /> : null}
 
           <Descriptions column={2} size="small" bordered>
-            <Descriptions.Item label="问题类型">{detail.issueType || '-'}</Descriptions.Item>
-            <Descriptions.Item label="严重度">
+            <Descriptions.Item label={t('quality.issue.issueType')}>{detail.issueType === 'deviation' ? t('quality.issue.typeDeviation') : detail.issueType === 'intent_defect' ? t('quality.issue.typeIntentDefect') : detail.issueType || '-'}</Descriptions.Item>
+            <Descriptions.Item label={t('quality.issue.severity')}>
               <SeverityBadge severity={detail.severity} />
             </Descriptions.Item>
-            <Descriptions.Item label="闸门决策">
+            <Descriptions.Item label={t('quality.issue.gateDecision')}>
               <GateDecisionTag decision={detail.gateDecision} />
             </Descriptions.Item>
-            <Descriptions.Item label="当前状态">{detail.status || '-'}</Descriptions.Item>
-            <Descriptions.Item label="关联 Spec">{detail.specId || '-'}</Descriptions.Item>
-            <Descriptions.Item label="工作流节点">{detail.workflowNodeId || '-'}</Descriptions.Item>
-            <Descriptions.Item label="发现数量">{detail.findingCount ?? 0}</Descriptions.Item>
-            <Descriptions.Item label="得分">{detail.score ?? '-'}</Descriptions.Item>
+            <Descriptions.Item label={t('quality.issue.status')}>{detail.status === 'open' ? t('quality.issue.statusOpen') : detail.status === 'acknowledged' ? t('quality.issue.statusAcknowledged') : detail.status === 'resolving' ? t('quality.issue.statusResolving') : detail.status === 'resolved' ? t('quality.issue.statusResolved') : detail.status === 'ignored' ? t('quality.issue.statusIgnored') : detail.status || '-'}</Descriptions.Item>
+            <Descriptions.Item label={t('quality.issue.linkedSpec')}>{detail.specId || '-'}</Descriptions.Item>
+            <Descriptions.Item label={t('quality.issue.workflowNode')}>{detail.workflowNodeId || '-'}</Descriptions.Item>
+            <Descriptions.Item label={t('quality.issue.findingCount')}>{detail.findingCount ?? 0}</Descriptions.Item>
+            <Descriptions.Item label={t('quality.issue.score')}>{detail.score ?? '-'}</Descriptions.Item>
           </Descriptions>
 
           <div>
-            <Title level={5}>发现详情</Title>
+            <Title level={5}>{t('quality.issue.findingsTitle')}</Title>
             <FindingsList findings={detail.findingsJson} />
           </div>
 
           <div>
-            <Title level={5}>处理说明</Title>
+            <Title level={5}>{t('quality.issue.handleNoteTitle')}</Title>
             <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
               <Select
                 value={action}
                 onChange={setAction}
-                options={RESOLUTION_OPTIONS}
+                options={getResolutionOptions(t)}
                 disabled={!pending}
                 style={{ width: 220 }}
               />
@@ -151,26 +156,26 @@ export default function QualityIssueHandleDrawer({
                 rows={4}
                 value={remark}
                 onChange={(event) => setRemark(event.target.value)}
-                placeholder="记录处理意见、补偿动作或风险说明"
+                placeholder={t('quality.issue.remarkPlaceholder')}
                 disabled={!pending}
               />
               {resumable ? (
                 <Button danger loading={resumeMutation.isPending} onClick={() => void handleResume()}>
-                  恢复被阻断的工作流
+                  {t('quality.issue.resumeWorkflow')}
                 </Button>
               ) : null}
             </Space>
           </div>
 
           <div>
-            <Title level={5}>时间线</Title>
+            <Title level={5}>{t('quality.issue.timelineTitle')}</Title>
             <Paragraph type="secondary" style={{ marginBottom: 4 }}>
-              创建时间: {detail.createdAt || '-'}
+              {t('quality.issue.createdAt')}: {detail.createdAt || '-'}
             </Paragraph>
             <Paragraph type="secondary" style={{ marginBottom: 4 }}>
-              处理时间: {detail.resolvedAt || '-'}
+              {t('quality.issue.resolvedAt')}: {detail.resolvedAt || '-'}
             </Paragraph>
-            <Text type="secondary">处理动作: {detail.resolutionAction || '-'}</Text>
+            <Text type="secondary">{t('quality.issue.resolutionAction')}: {detail.resolutionAction || '-'}</Text>
           </div>
         </Space>
       )}

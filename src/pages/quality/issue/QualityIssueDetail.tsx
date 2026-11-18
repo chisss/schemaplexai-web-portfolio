@@ -19,6 +19,8 @@ import {
   useResumeQualityIssueWorkflow,
 } from '@/api/quality';
 import type { QualityIssueFinding } from '@/types/quality';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 const { Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -37,12 +39,12 @@ const statusColorMap: Record<string, string> = {
   ignored: 'default',
 };
 
-const statusLabelMap: Record<string, string> = {
-  open: '待处理',
-  acknowledged: '已确认',
-  resolving: '处理中',
-  resolved: '已解决',
-  ignored: '已忽略',
+const statusLabelKeyMap: Record<string, string> = {
+  open: 'quality.issue.statusOpen',
+  acknowledged: 'quality.issue.statusAcknowledged',
+  resolving: 'quality.issue.statusResolving',
+  resolved: 'quality.issue.statusResolved',
+  ignored: 'quality.issue.statusIgnored',
 };
 
 const gateDecisionColorMap: Record<string, string> = {
@@ -53,6 +55,33 @@ const gateDecisionColorMap: Record<string, string> = {
   retry: 'blue',
 };
 
+const SEVERITY_LABEL_KEYS: Record<string, string> = {
+  critical: 'quality.severity.critical',
+  high: 'quality.severity.high',
+  warning: 'quality.severity.warning',
+  medium: 'quality.severity.medium',
+  info: 'quality.severity.info',
+  low: 'quality.severity.low',
+};
+
+const GATE_DECISION_LABEL_KEYS: Record<string, string> = {
+  pass: 'quality.gateDecision.pass',
+  warn: 'quality.gateDecision.warn',
+  pause: 'quality.gateDecision.pause',
+  fail: 'quality.gateDecision.fail',
+  retry: 'quality.gateDecision.retry',
+};
+
+function labelOf(keyMap: Record<string, string>, value: string | undefined, t: TFunction) {
+  if (!value) {
+    return '-';
+  }
+  return keyMap[value] ? t(keyMap[value]) : value;
+}
+
+const issueSeverityLabel = (value: string, t: TFunction) => labelOf(SEVERITY_LABEL_KEYS, value, t);
+const gateDecisionLabel = (value: string, t: TFunction) => labelOf(GATE_DECISION_LABEL_KEYS, value, t);
+
 const findingSeverityColor: Record<string, string> = {
   critical: '#cf1322',
   warning: '#fa8c16',
@@ -60,6 +89,7 @@ const findingSeverityColor: Record<string, string> = {
 };
 
 const QualityIssueDetail: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: issue, isLoading } = useQualityIssueDetail(id || '');
@@ -80,7 +110,7 @@ const QualityIssueDetail: React.FC = () => {
   }
 
   if (!issue) {
-    return <div style={{ textAlign: 'center', padding: 80 }}>质量问题不存在</div>;
+    return <div style={{ textAlign: 'center', padding: 80 }}>{t('quality.issue.notFound')}</div>;
   }
 
   const canAcknowledge = issue.status === 'open';
@@ -91,7 +121,7 @@ const QualityIssueDetail: React.FC = () => {
 
   const handleAcknowledge = () => {
     acknowledgeMutation.mutate({ id: issue.id }, {
-      onSuccess: () => message.success('已确认'),
+      onSuccess: () => message.success(t('quality.issue.msgAcknowledged')),
     });
   };
 
@@ -100,7 +130,7 @@ const QualityIssueDetail: React.FC = () => {
       { id: issue.id, data: { action: resolveAction, remark: resolveRemark } },
       {
         onSuccess: () => {
-          message.success('已解决');
+          message.success(t('quality.issue.msgResolved'));
           setResolveModalOpen(false);
           setResolveRemark('');
         },
@@ -113,7 +143,7 @@ const QualityIssueDetail: React.FC = () => {
       { id: issue.id, data: { remark: ignoreRemark } },
       {
         onSuccess: () => {
-          message.success('已忽略');
+          message.success(t('quality.issue.msgIgnored'));
           setIgnoreModalOpen(false);
           setIgnoreRemark('');
         },
@@ -123,13 +153,13 @@ const QualityIssueDetail: React.FC = () => {
 
   const handleResume = () => {
     Modal.confirm({
-      title: '恢复工作流',
-      content: '确认覆盖闸门决策并恢复工作流执行？此操作不可撤销。',
-      okText: '确认恢复',
-      cancelText: '取消',
+      title: t('quality.issue.resumeConfirmTitle'),
+      content: t('quality.issue.resumeConfirmContent'),
+      okText: t('quality.issue.resumeOk'),
+      cancelText: t('common.cancel'),
       onOk: () => {
         resumeMutation.mutate({ id: issue.id }, {
-          onSuccess: () => message.success('工作流已恢复'),
+          onSuccess: () => message.success(t('quality.issue.msgWorkflowResumed')),
         });
       },
     });
@@ -145,42 +175,42 @@ const QualityIssueDetail: React.FC = () => {
         onClick={() => navigate('/quality/issues')}
         style={{ marginBottom: 12, paddingLeft: 0 }}
       >
-        返回列表
+        {t('quality.issue.backToList')}
       </Button>
 
       {/* 基本信息 */}
-      <Card title="基本信息" style={{ marginBottom: 16 }}>
+      <Card title={t('quality.issue.basicInfo')} style={{ marginBottom: 16 }}>
         <Descriptions column={{ xs: 1, sm: 2, lg: 3 }} bordered size="small">
-          <Descriptions.Item label="标题" span={3}>{issue.title}</Descriptions.Item>
-          <Descriptions.Item label="状态">
+          <Descriptions.Item label={t('quality.issue.title')} span={3}>{issue.title}</Descriptions.Item>
+          <Descriptions.Item label={t('quality.issue.status')}>
             <Badge
               status={issue.status === 'open' ? 'error' : issue.status === 'resolved' ? 'success' : 'processing'}
-              text={<Tag color={statusColorMap[issue.status]}>{statusLabelMap[issue.status] || issue.status}</Tag>}
+              text={<Tag color={statusColorMap[issue.status]}>{statusLabelKeyMap[issue.status] ? t(statusLabelKeyMap[issue.status]) : issue.status}</Tag>}
             />
           </Descriptions.Item>
-          <Descriptions.Item label="严重度">
-            <Tag color={severityColorMap[issue.severity] || 'default'}>{issue.severity}</Tag>
+          <Descriptions.Item label={t('quality.issue.severity')}>
+            <Tag color={severityColorMap[issue.severity] || 'default'}>{issueSeverityLabel(issue.severity, t)}</Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="闸门决策">
+          <Descriptions.Item label={t('quality.issue.gateDecision')}>
             {issue.gateDecision
-              ? <Tag color={gateDecisionColorMap[issue.gateDecision] || 'default'}>{issue.gateDecision}</Tag>
+              ? <Tag color={gateDecisionColorMap[issue.gateDecision] || 'default'}>{gateDecisionLabel(issue.gateDecision, t)}</Tag>
               : '-'}
           </Descriptions.Item>
-          <Descriptions.Item label="类型">
-            {issue.issueType === 'deviation' ? '偏离检测' : '意图缺陷'}
+          <Descriptions.Item label={t('quality.issue.issueType')}>
+            {issue.issueType === 'deviation' ? t('quality.issue.typeDeviation') : t('quality.issue.typeIntentDefect')}
           </Descriptions.Item>
-          <Descriptions.Item label="来源">{issue.sourceType || '-'}</Descriptions.Item>
-          <Descriptions.Item label="执行策略">{issue.executionStrategy || '-'}</Descriptions.Item>
-          <Descriptions.Item label="得分">{issue.score ?? '-'}</Descriptions.Item>
-          <Descriptions.Item label="问题数">{issue.findingCount}</Descriptions.Item>
-          <Descriptions.Item label="创建时间">
+          <Descriptions.Item label={t('quality.issue.source')}>{issue.sourceType || '-'}</Descriptions.Item>
+          <Descriptions.Item label={t('quality.issue.executionStrategy')}>{issue.executionStrategy || '-'}</Descriptions.Item>
+          <Descriptions.Item label={t('quality.issue.score')}>{issue.score ?? '-'}</Descriptions.Item>
+          <Descriptions.Item label={t('quality.issue.findingCount')}>{issue.findingCount}</Descriptions.Item>
+          <Descriptions.Item label={t('quality.issue.createdAt')}>
             {issue.createdAt ? new Date(issue.createdAt).toLocaleString() : '-'}
           </Descriptions.Item>
         </Descriptions>
 
         {issue.summary && (
           <div style={{ marginTop: 12 }}>
-            <Text type="secondary">摘要：</Text>
+            <Text type="secondary">{t('quality.issue.summary')}：</Text>
             <Paragraph style={{ marginTop: 4 }}>{issue.summary}</Paragraph>
           </div>
         )}
@@ -188,18 +218,18 @@ const QualityIssueDetail: React.FC = () => {
 
       {/* 关联上下文 */}
       {(issue.specId || issue.workflowInstanceId || issue.crossReviewId) && (
-        <Card title="关联上下文" size="small" style={{ marginBottom: 16 }}>
+        <Card title={t('quality.issue.relatedContext')} size="small" style={{ marginBottom: 16 }}>
           <Descriptions column={2} size="small">
             {issue.specId && <Descriptions.Item label="Spec ID">{issue.specId}</Descriptions.Item>}
             {issue.taskId && <Descriptions.Item label="Task ID">{issue.taskId}</Descriptions.Item>}
             {issue.workflowInstanceId && (
-              <Descriptions.Item label="工作流实例">{issue.workflowInstanceId}</Descriptions.Item>
+              <Descriptions.Item label={t('quality.issue.workflowInstance')}>{issue.workflowInstanceId}</Descriptions.Item>
             )}
             {issue.workflowNodeId && (
-              <Descriptions.Item label="工作流节点">{issue.workflowNodeId}</Descriptions.Item>
+              <Descriptions.Item label={t('quality.issue.workflowNode')}>{issue.workflowNodeId}</Descriptions.Item>
             )}
             {issue.crossReviewId && (
-              <Descriptions.Item label="交叉审查">{issue.crossReviewId}</Descriptions.Item>
+              <Descriptions.Item label={t('quality.issue.crossReview')}>{issue.crossReviewId}</Descriptions.Item>
             )}
           </Descriptions>
         </Card>
@@ -211,12 +241,12 @@ const QualityIssueDetail: React.FC = () => {
           type="warning"
           showIcon
           icon={<ExclamationCircleOutlined />}
-          message="工作流已被质量闸门暂停"
-          description="当前质量问题触发了 pause 闸门决策，关联的工作流已暂停执行。处理完问题后可点击「恢复工作流」继续执行。"
+          message={t('quality.issue.gatePausedAlertTitle')}
+          description={t('quality.issue.gatePausedAlertDesc')}
           style={{ marginBottom: 16 }}
           action={
             <Button type="primary" danger size="small" onClick={handleResume} loading={resumeMutation.isPending}>
-              恢复工作流
+              {t('quality.issue.resumeWorkflow')}
             </Button>
           }
         />
@@ -232,7 +262,7 @@ const QualityIssueDetail: React.FC = () => {
                 onClick={handleAcknowledge}
                 loading={acknowledgeMutation.isPending}
               >
-                确认问题
+                {t('quality.issue.acknowledge')}
               </Button>
             )}
             {canResolve && (
@@ -241,7 +271,7 @@ const QualityIssueDetail: React.FC = () => {
                 icon={<CheckCircleOutlined />}
                 onClick={() => setResolveModalOpen(true)}
               >
-                解决问题
+                {t('quality.issue.resolve')}
               </Button>
             )}
             {canIgnore && (
@@ -249,7 +279,7 @@ const QualityIssueDetail: React.FC = () => {
                 icon={<CloseCircleOutlined />}
                 onClick={() => setIgnoreModalOpen(true)}
               >
-                忽略
+                {t('quality.issue.ignore')}
               </Button>
             )}
             {canResume && (
@@ -260,7 +290,7 @@ const QualityIssueDetail: React.FC = () => {
                 onClick={handleResume}
                 loading={resumeMutation.isPending}
               >
-                恢复工作流
+                {t('quality.issue.resumeWorkflow')}
               </Button>
             )}
           </Space>
@@ -270,7 +300,7 @@ const QualityIssueDetail: React.FC = () => {
       {/* Findings 列表 */}
       <Card title={`Findings（${findings.length}）`} style={{ marginBottom: 16 }}>
         {findings.length === 0 ? (
-          <Text type="secondary">无详细 findings 数据</Text>
+          <Text type="secondary">{t('quality.issue.noFindingsData')}</Text>
         ) : (
           <List
             dataSource={findings}
@@ -282,18 +312,18 @@ const QualityIssueDetail: React.FC = () => {
                     <Tag color={findingSeverityColor[finding.severity] || undefined}>{finding.severity}</Tag>
                     <Tag>{finding.type}</Tag>
                     {finding.ruleCode && <Tag color="geekblue">{finding.ruleCode}</Tag>}
-                    <Text type="secondary">置信度: {(finding.confidence * 100).toFixed(0)}%</Text>
+                    <Text type="secondary">{t('quality.finding.confidence', { value: (finding.confidence * 100).toFixed(0) })}</Text>
                   </Space>
                   <div style={{ marginBottom: 4 }}>
                     <Text strong>{finding.title}</Text>
                   </div>
                   <Paragraph type="secondary" style={{ marginBottom: 4 }}>{finding.description}</Paragraph>
                   {finding.location && (
-                    <div><Text type="secondary">位置: </Text><Text code>{finding.location}</Text></div>
+                    <div><Text type="secondary">{t('quality.finding.location', { location: '' })}</Text><Text code>{finding.location}</Text></div>
                   )}
                   {finding.suggestion && (
                     <div style={{ marginTop: 4 }}>
-                      <Text type="secondary">建议: </Text><Text>{finding.suggestion}</Text>
+                      <Text type="secondary">{t('quality.finding.suggestion', { suggestion: '' })}</Text><Text>{finding.suggestion}</Text>
                     </div>
                   )}
                 </div>
@@ -305,14 +335,14 @@ const QualityIssueDetail: React.FC = () => {
 
       {/* 处理记录 */}
       {(issue.resolutionAction || issue.resolvedAt) && (
-        <Card title="处理记录" size="small">
+        <Card title={t('quality.issue.handleRecord')} size="small">
           <Timeline
             items={[
               {
                 color: 'blue',
                 children: (
                   <div>
-                    <Text>问题创建</Text>
+                    <Text>{t('quality.issue.issueCreated')}</Text>
                     <br />
                     <Text type="secondary">{issue.createdAt ? new Date(issue.createdAt).toLocaleString() : '-'}</Text>
                   </div>
@@ -322,7 +352,7 @@ const QualityIssueDetail: React.FC = () => {
                 color: 'green' as const,
                 children: (
                   <div>
-                    <Text>处理动作: <Tag>{issue.resolutionAction}</Tag></Text>
+                    <Text>{t('quality.issue.resolutionAction')}: <Tag>{issue.resolutionAction}</Tag></Text>
                     {issue.resolutionRemark && <Paragraph type="secondary">{issue.resolutionRemark}</Paragraph>}
                     <Text type="secondary">{issue.resolvedAt ? new Date(issue.resolvedAt).toLocaleString() : ''}</Text>
                   </div>
@@ -335,33 +365,33 @@ const QualityIssueDetail: React.FC = () => {
 
       {/* 解决问题 Modal */}
       <Modal
-        title="解决质量问题"
+        title={t('quality.issue.resolveModalTitle')}
         open={resolveModalOpen}
         onOk={handleResolve}
         onCancel={() => setResolveModalOpen(false)}
         confirmLoading={resolveMutation.isPending}
-        okText="确认解决"
+        okText={t('quality.issue.resolveOk')}
       >
         <div style={{ marginBottom: 12 }}>
-          <Text>处理方式:</Text>
+          <Text>{t('quality.issue.handleMethod')}:</Text>
           <Select
             value={resolveAction}
             onChange={setResolveAction}
             style={{ width: '100%', marginTop: 4 }}
             options={[
-              { label: '修复问题', value: 'fix' },
-              { label: '接受风险', value: 'accept_risk' },
-              { label: '重试执行', value: 'retry' },
-              { label: '覆盖决策', value: 'override' },
+              { label: t('quality.issue.actionFix'), value: 'fix' },
+              { label: t('quality.issue.actionAcceptRisk'), value: 'accept_risk' },
+              { label: t('quality.issue.actionRetry'), value: 'retry' },
+              { label: t('quality.issue.actionOverride'), value: 'override' },
             ]}
           />
         </div>
         <div>
-          <Text>备注:</Text>
+          <Text>{t('quality.issue.remark')}:</Text>
           <TextArea
             value={resolveRemark}
             onChange={(e) => setResolveRemark(e.target.value)}
-            placeholder="请输入处理备注"
+            placeholder={t('quality.issue.resolveRemarkPlaceholder')}
             rows={3}
             style={{ marginTop: 4 }}
           />
@@ -370,18 +400,18 @@ const QualityIssueDetail: React.FC = () => {
 
       {/* 忽略问题 Modal */}
       <Modal
-        title="忽略质量问题"
+        title={t('quality.issue.ignoreModalTitle')}
         open={ignoreModalOpen}
         onOk={handleIgnore}
         onCancel={() => setIgnoreModalOpen(false)}
         confirmLoading={ignoreMutation.isPending}
-        okText="确认忽略"
+        okText={t('quality.issue.ignoreOk')}
       >
-        <Text>忽略原因:</Text>
+        <Text>{t('quality.issue.ignoreReason')}:</Text>
         <TextArea
           value={ignoreRemark}
           onChange={(e) => setIgnoreRemark(e.target.value)}
-          placeholder="请输入忽略原因"
+          placeholder={t('quality.issue.ignoreReasonPlaceholder')}
           rows={3}
           style={{ marginTop: 4 }}
         />

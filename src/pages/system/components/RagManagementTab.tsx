@@ -37,8 +37,8 @@ const { Text } = Typography;
 
 /** 内置向量模型列表 */
 const BUILTIN_EMBEDDING_MODELS = [
-  { id: 'all-MiniLM-L6-v2', name: '多语言通用（中英文混合）', dimension: 384 },
-  { id: 'bge-small-en-v1.5', name: '英文专项优化', dimension: 384 },
+  { id: 'all-MiniLM-L6-v2', nameKey: 'system.rag.builtinModelMultilingual', dimension: 384 },
+  { id: 'bge-small-en-v1.5', nameKey: 'system.rag.builtinModelEnglish', dimension: 384 },
 ];
 
 interface RagManagementTabProps {
@@ -300,7 +300,7 @@ export default function RagManagementTab({ models }: RagManagementTabProps) {
               <Select
                 options={BUILTIN_EMBEDDING_MODELS.map((m) => ({
                   value: m.id,
-                  label: `${m.id} — ${m.name}（${m.dimension} 维）`,
+                  label: `${m.id} — ${t(m.nameKey)}${t('system.rag.dimensionSuffix', { defaultValue: `（${m.dimension} 维）`, dimension: m.dimension })}`,
                 }))}
               />
             </Form.Item>
@@ -360,7 +360,7 @@ export default function RagManagementTab({ models }: RagManagementTabProps) {
             <Form.Item
               name="chunkSize"
               label={buildTipLabel(
-                t('system.rag.chunkSize', { defaultValue: 'CHUNK_SIZE' }),
+                t('system.rag.chunkSize', { defaultValue: '分块大小' }),
                 t('system.rag.chunkSizeTip', { defaultValue: '单个文本分块的目标长度。中文知识库常用 500-1200。' })
               )}
               rules={[{ required: true, message: t('system.rag.chunkSizeRequired', { defaultValue: '请输入分块大小' }) }]}
@@ -370,8 +370,8 @@ export default function RagManagementTab({ models }: RagManagementTabProps) {
             <Form.Item
               name="chunkOverlap"
               label={buildTipLabel(
-                t('system.rag.chunkOverlap', { defaultValue: 'CHUNK_OVERLAP' }),
-                t('system.rag.chunkOverlapTip', { defaultValue: '相邻分块的重叠长度，通常取 CHUNK_SIZE 的 10%-20%。' })
+                t('system.rag.chunkOverlap', { defaultValue: '分块重叠' }),
+                t('system.rag.chunkOverlapTip', { defaultValue: '相邻分块的重叠长度，通常取分块大小的 10%-20%。' })
               )}
               rules={[{ required: true, message: t('system.rag.chunkOverlapRequired', { defaultValue: '请输入分块重叠' }) }]}
             >

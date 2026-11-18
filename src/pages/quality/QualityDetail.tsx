@@ -2,6 +2,7 @@ import { App as AntApp, Card, Descriptions, Button, Tag, Space, Typography, Time
 import { ArrowLeftOutlined, CheckCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useState } from 'react';
 import PageContainer from '@/components/PageContainer/PageContainer';
 import MarkdownPreview from '@/components/MarkdownPreview/MarkdownPreview';
@@ -15,12 +16,12 @@ function normalizeStatus(status?: string) {
   return (status || '').toLowerCase() || 'open';
 }
 
-function statusMeta(status?: string) {
+function statusMeta(status: string | undefined, t: TFunction) {
   const value = normalizeStatus(status);
-  if (value === 'resolved') return { text: '已关闭', color: 'success' as const };
-  if (value === 'acknowledged') return { text: '已确认', color: 'processing' as const };
-  if (value === 'ignored') return { text: '已忽略', color: 'default' as const };
-  return { text: '待处理', color: 'error' as const };
+  if (value === 'resolved') return { text: t('quality.deviation.statusResolved'), color: 'success' as const };
+  if (value === 'acknowledged') return { text: t('quality.deviation.statusAcknowledged'), color: 'processing' as const };
+  if (value === 'ignored') return { text: t('quality.deviation.statusIgnored'), color: 'default' as const };
+  return { text: t('quality.deviation.statusOpen'), color: 'error' as const };
 }
 
 export default function QualityDetail() {
@@ -36,7 +37,7 @@ export default function QualityDetail() {
   const [scanning, setScanning] = useState(false);
 
   const currentStatus = normalizeStatus(deviationData?.status);
-  const currentStatusMeta = statusMeta(deviationData?.status);
+  const currentStatusMeta = statusMeta(deviationData?.status, t);
   const canResolve = currentStatus !== 'resolved';
   const canRescan = !!deviationData?.specId && !!deviationData?.agentExecutionId;
 
@@ -53,8 +54,8 @@ export default function QualityDetail() {
             onClick={() => {
               if (!id) return;
               updateStatus.mutate(
-                { id, data: { status: 'resolved', remark: '质量中心手工关闭' } },
-                { onSuccess: () => message.success('已标记为关闭') },
+                { id, data: { status: 'resolved', remark: t('quality.manualCloseRemark') } },
+                { onSuccess: () => message.success(t('quality.markedResolved')) },
               );
             }}
           >
@@ -66,7 +67,7 @@ export default function QualityDetail() {
             loading={detectDeviation.isPending}
             onClick={() => {
               if (!deviationData?.specId || !deviationData?.agentExecutionId) {
-                message.warning('当前记录缺少可重扫的执行上下文');
+                message.warning(t('quality.noRescanContext'));
                 return;
               }
               setScanning(true);
@@ -77,7 +78,7 @@ export default function QualityDetail() {
                 },
                 {
                   onSuccess: () => {
-                    message.success('检测任务已提交，正在刷新结果...');
+                    message.success(t('quality.detectSubmitted'));
                     // 延迟刷新详情数据，给后端处理时间
                     setTimeout(() => {
                       refetch().finally(() => setScanning(false));
@@ -93,7 +94,7 @@ export default function QualityDetail() {
             {t('quality.rescan')}
           </Button>
           {!canRescan ? (
-            <Text type="secondary">当前记录不支持重新扫描</Text>
+            <Text type="secondary">{t('quality.rescanUnsupported')}</Text>
           ) : null}
           <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>{t('common.back')}</Button>
         </Space>
@@ -127,10 +128,10 @@ export default function QualityDetail() {
               <Descriptions.Item label={t('quality.detectionTime')}>
                 {deviationData?.createdAt ? formatDateTime(deviationData.createdAt) : '-'}
               </Descriptions.Item>
-              <Descriptions.Item label="来源类型">{deviationData?.sourceType || '-'}</Descriptions.Item>
-              <Descriptions.Item label="关联任务ID">{deviationData?.taskId || '-'}</Descriptions.Item>
-              <Descriptions.Item label="执行ID">{deviationData?.agentExecutionId || '-'}</Descriptions.Item>
-              <Descriptions.Item label="工作空间ID">{deviationData?.workspaceId || '-'}</Descriptions.Item>
+              <Descriptions.Item label={t('quality.sourceType')}>{deviationData?.sourceType || '-'}</Descriptions.Item>
+              <Descriptions.Item label={t('quality.linkedTaskId')}>{deviationData?.taskId || '-'}</Descriptions.Item>
+              <Descriptions.Item label={t('quality.executionId')}>{deviationData?.agentExecutionId || '-'}</Descriptions.Item>
+              <Descriptions.Item label={t('quality.workspaceId')}>{deviationData?.workspaceId || '-'}</Descriptions.Item>
             </Descriptions>
           </Card>
 

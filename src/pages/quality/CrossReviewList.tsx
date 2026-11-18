@@ -195,11 +195,11 @@ export default function CrossReviewList({ embedded = false }: CrossReviewListPro
               return;
             }
             if (!selectedSpecDetail || !COMPLETED_SPEC_STATUSES.has(selectedSpecDetail.status)) {
-              message.warning('仅支持对已完成的 Spec 发起交叉审查');
+              message.warning(t('quality.crossReview.onlyCompletedSpec'));
               return;
             }
             if (!selectedSpecDetail.primaryArtifactId) {
-              message.warning('所选 Spec 尚未生成主产物，无法执行交叉审查');
+              message.warning(t('quality.crossReview.noPrimaryArtifact'));
               return;
             }
             createMutation.mutate(
@@ -226,7 +226,7 @@ export default function CrossReviewList({ embedded = false }: CrossReviewListPro
           <Form.Item
             name="specId"
             label="Spec"
-            extra="仅支持已完成且已生成主产物的 Spec，系统会优先扫描最终交付产物。"
+            extra={t('quality.crossReview.specExtra')}
             rules={[{ required: true, message: t('quality.crossReview.pleaseSelectSpec') }]}
           >
             <Select showSearch optionFilterProp="label" options={specOptions} />
@@ -249,11 +249,11 @@ export default function CrossReviewList({ embedded = false }: CrossReviewListPro
           <Form.Item name="taskId" label={t('quality.crossReview.taskIdLabel')}>
             <Input placeholder={t('quality.crossReview.taskIdPlaceholder')} />
           </Form.Item>
-          <Form.Item name="targetContent" label="审查对象（可选）" extra="不填则自动使用 Spec 主产物内容">
-            <Input.TextArea rows={3} placeholder="粘贴自定义的待审查内容" />
+          <Form.Item name="targetContent" label={t('quality.crossReview.targetContentLabel')} extra={t('quality.crossReview.targetContentExtra')}>
+            <Input.TextArea rows={3} placeholder={t('quality.crossReview.targetContentPlaceholder')} />
           </Form.Item>
-          <Form.Item name="referenceContent" label="参照基线（可选）" extra="不填则自动从 Spec 描述或文档解析">
-            <Input.TextArea rows={3} placeholder="粘贴自定义的参照基线内容（如用户需求/PRD）" />
+          <Form.Item name="referenceContent" label={t('quality.crossReview.referenceContentLabel')} extra={t('quality.crossReview.referenceContentExtra')}>
+            <Input.TextArea rows={3} placeholder={t('quality.crossReview.referenceContentPlaceholder')} />
           </Form.Item>
         </Form>
       </Modal>
